@@ -1,6 +1,7 @@
 const isString = require('lodash/isString');
 const isObject = require('lodash/isObject');
-
+const map = require('lodash/map');
+const filter = require('lodash/filter')
 
 function getPrefixTargetKeys() {
   /*
@@ -77,6 +78,22 @@ const regionMap =
       }
     }
   }
+
+function makeRegionOptions(data) {
+/*   value: 'zhejiang',
+    label: 'Zhejiang',
+    children: [...]*/
+    const opts = map(data, (value, key) => {
+      return {
+        value: value,
+        label: key,
+        children: isObject(value) ? makeRegionOptions(value) : null,
+      }
+    })
+    return filter(opts, o => o.label === '全部').concat(filter(opts, o => o.label !== '全部'));
+
+
+}
 function setRegionAll(map, top=true) {
   // 自底向上
   if (isString(map)) {
@@ -105,6 +122,7 @@ function setRegionAll(map, top=true) {
 
 const  res = setRegionAll(regionMap);
 console.log(res);
+console.log(JSON.stringify(makeRegionOptions(res)))
 /*
 {
   '上海': { '宝山区': '310113', '全部': '310100' },
