@@ -90,7 +90,8 @@ class App extends React.Component {
   state = {
     targetKeys: [],
     selectedKeys: [],
-    rightAllChecked: false,
+    checkAll: false,
+    indeterminate: false,
     limit: 20,
   };
 
@@ -109,8 +110,12 @@ class App extends React.Component {
   };
 
   handleSelectChange = (sourceSelectedKeys, targetSelectedKeys) => {
-    this.setState({
-      selectedKeys: sourceSelectedKeys.concat(targetSelectedKeys)
+    this.setState(({ targetKeys }) => {
+      return {
+        checkAll: !!targetKeys.length && targetKeys.length === targetSelectedKeys.length,
+        indeterminate: !!targetSelectedKeys.length && targetSelectedKeys.length < targetKeys.length,
+        selectedKeys: sourceSelectedKeys.concat(targetSelectedKeys)
+      };
     })
   }
 
@@ -118,7 +123,8 @@ class App extends React.Component {
     this.setState(({ selectedKeys, targetKeys }) => {
       const { checked } = e.target;
       return {
-        rightAllChecked: checked,
+        checkAll: checked,
+        indeterminate: false,
         selectedKeys: checked ? 
           uniq(selectedKeys.concat(targetKeys))
           : difference(selectedKeys, targetKeys)
@@ -126,18 +132,22 @@ class App extends React.Component {
     })
   }
   onChange = (targetKeys, direction, moveKeys) => {
-    const map = {};
+    const isLeaf = {};
     flatten(dataSource).forEach( d => {
-      map[d.key] = isEmpty(d.children);
+      isLeaf[d.key] = isEmpty(d.children);
     })
-    this.setState({
-      targetKeys: filter(targetKeys, k => map[k]), 
-      rightAllChecked: false 
+    this.setState(({selectedKeys, indeterminate, checkAll}) => {
+      console.log(targetKeys, selectedKeys)
+      return {
+        targetKeys: filter(targetKeys, k => isLeaf[k]), 
+        checkAll: false,
+        indeterminate: checkAll || indeterminate
+      };
     });
   };
 
   render() {
-    const { targetKeys, selectedKeys, rightAllChecked, leftAllChecked, limit } = this.state;
+    const { targetKeys, selectedKeys, checkAll, leftAllChecked, limit, indeterminate } = this.state;
 
 
     function isChild(rootKey, key) {
@@ -168,7 +178,8 @@ class App extends React.Component {
             null,
             <span>
               <Checkbox 
-                checked={rightAllChecked} 
+                indeterminate={indeterminate}
+                checked={checkAll} 
                 disabled={isEmpty(targetKeys)} 
                 onChange={this.handleRightCheckAll}
               >right</Checkbox>
