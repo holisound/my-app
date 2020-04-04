@@ -3,22 +3,24 @@ const isObject = require('lodash/isObject');
 const map = require('lodash/map');
 const filter = require('lodash/filter')
 
+
+export function countDash(p){
+  let cnt = 0
+  for (let c of p) {
+    if (c === '-')
+      cnt++
+  }
+  return cnt
+}
 function getPrefixTargetKeys() {
   /*
   前缀
   */
   const targetKeys = ['a', 'a-b', 'a-b-c', 'd', 'd-e-f', 'h-j-k', 'm', 'm-n', 'r-s-t', 'r-s-u', 'r-v']
 
-  function count(p){
-    let cnt = 0
-    for (let c of p) {
-      if (c === '-')
-        cnt++
-    }
-    return cnt
-  }
 
-  targetKeys.sort((a,b) => count(a)-count(b))
+
+  targetKeys.sort((a,b) => countDash(a)-countDash(b))
 
   console.log(targetKeys)
   /*
