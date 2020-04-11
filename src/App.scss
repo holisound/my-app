@@ -4,27 +4,37 @@
     height: 30px;
   }
 }
+.ant-table-column-sorter {
+  position: absolute;
+  right: 28px;
+  width: 28px;
+}
 .column {
   display: flex;
-  height: 42px;
-}
-.column .text {
-  white-space: nowrap;
-  padding: 0 2px;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-.column .btn {
-  cursor: pointer;
-  width: 2em;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-.column .btn:hover{
-    background: #e5e5e5;
+  .text {
+    padding: 0 2px;
+    flex: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .btn-group{
+    position: absolute;
+    right: 56px;
+    display: flex;
+    top: 0;
+    bottom: 0;
+    .btn {
+      cursor: pointer;
+      width: 2em;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      &:hover{
+          background: #e5e5e5;
+      }
+    }
+  }
 }
 
 .bool-true {
@@ -53,6 +63,11 @@
   .footer {
     .footer-btn {
       cursor: pointer;
+      color: blue;
+      &.disabled {
+        cursor: not-allowed;
+        color: #999;
+      }
     }
     .reset-default {
       float: right;

@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { Row, Table, ConfigProvider, DatePicker, message, Select, Button, Tooltip, Slider, Divider, InputNumber, Checkbox } from 'antd';
+import { Layout, Row, Col, Table, ConfigProvider, DatePicker, message, Select, Button, Tooltip, Slider, Divider, InputNumber, Checkbox } from 'antd';
 // 由于 antd 组件的默认文案是英文，所以需要修改为中文
 import { CheckOutlined, CloseOutlined, RightOutlined, LeftOutlined, SearchOutlined } from '@ant-design/icons';
 import zhCN from 'antd/es/locale/zh_CN';
@@ -12,14 +12,13 @@ import isBoolean from 'lodash/isBoolean';
 import isEqual from 'lodash/isEqual';
 import isEmpty from 'lodash/isEmpty';
 import countBy from 'lodash/countBy';
+import every from 'lodash/every';
 
 class App extends React.Component {
 
   state = {
     percentMap: {},
     booleanMap: {},
-    numberEnumMap: {},
-    numberRangeMap: {},
   }
 
   onChange = (pagination, filters, sorter, extra) => {
@@ -129,62 +128,51 @@ class App extends React.Component {
 
 
   getNumberProps = (dataIndex, dataSource) => {
-    const handleSearch = (selectedKeys, confirm, clearFilters, dataIndex) => {
-      isEqual(selectedKeys, [0, 100]) ? clearFilters() : confirm();
-    };
 
-    const handleReset = (clearFilters, dataIndex) => {
-      clearFilters();
-      this.setState(({ numberEnumMap, numberRangeMap }) => {
-        delete numberEnumMap[dataIndex];
-        delete numberRangeMap[dataIndex];
-        return { numberEnumMap, numberRangeMap };
-      });
-    }
-
-    const handleEnumChange = (setSelectedKeys, value, dataIndex, confirm, clearFilters) => {
-      setSelectedKeys([{value, type: 'enum'}]);
-      isEmpty(value) && clearFilters();
-      this.setState(({ numberEnumMap, numberRangeMap }) => {
-        numberEnumMap[dataIndex] = value;
-        delete numberRangeMap[dataIndex];
-        return { numberEnumMap, numberRangeMap };
-      });
-    }
-
-    const handleRangeChange = (setSelectedKeys, value, dataIndex, confirm, clearFilters) => {
-      setSelectedKeys([{value, type: 'range'}]);
-      isEqual(value, [null, null]) && clearFilters();
-      this.setState(({ numberEnumMap, numberRangeMap }) => {
-        numberRangeMap[dataIndex] = value;
-        delete numberEnumMap[dataIndex];
-        return { numberEnumMap, numberRangeMap };
-      });
-    }
     const count = countBy( dataSource.map(r => r[dataIndex]) );
-    const numberRange = this.state.numberRangeMap[dataIndex] || [null, null];
     return {
       filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }) =>  {
+        let numberRange = [null, null], numberEnum = [];
+        const {type, value} = selectedKeys[0] || {};
+        if (type === 'range') {
+          numberRange = value;
+        } else if (type === 'enum') {
+          numberEnum = value;
+        }
+        const confirmDisabled = every(numberRange, num => [null, ''].includes(num) ) && isEmpty(numberEnum);
         return (
           <div className="table-filter-number">
-            <Checkbox.Group value={this.state.numberEnumMap[dataIndex]}
-              onChange={(value) => handleEnumChange(setSelectedKeys, value, dataIndex, confirm, clearFilters) }>
+            <Checkbox.Group value={numberEnum}
+              onChange={value => {
+                setSelectedKeys([{value, type: 'enum'}]);
+                isEmpty(value) && clearFilters();
+              } }>
               {Object.keys(count).map(c => <div key={c}><Checkbox value={Number(c)}>{`${c} (${count[c]})`}</Checkbox></div>)}
             </Checkbox.Group>
             <div className="custom">
               <div className="custom-title">自定义</div>
               <div className="number-range">
                   <InputNumber className="number-range-input" value={numberRange[0]} min={0}
-                    onChange={(value) => handleRangeChange(setSelectedKeys, [value, numberRange[1]], dataIndex, confirm, clearFilters) }/>
+                  onChange={value => {
+                    
+                    setSelectedKeys([{value: [value, numberRange[1]], type: 'range'}]);
+                    isEqual(value, [null, null]) && clearFilters();
+
+                  }}
+                  />
                   <span className="number-range-with">~</span>
                   <InputNumber className="number-range-input" value={numberRange[1]} min={0}
-                    onChange={(value) => handleRangeChange(setSelectedKeys, [numberRange[0], value], dataIndex, confirm, clearFilters) }/>
+                    onChange={value => {
+                      setSelectedKeys([{value: [numberRange[0], value], type: 'range'}]);
+                      isEqual(value, [null, null]) && clearFilters();
+
+                    } }/>
               </div>
             </div>
             <Divider style={{ marginBottom: 6}}/>
             <div className="footer">
-              <span className="footer-btn confirm" onClick={confirm}>确定</span>
-              <span className="footer-btn reset-default" onClick={() => handleReset(clearFilters, dataIndex)}>恢复默认</span>
+              <span className={`footer-btn confirm ${confirmDisabled ? 'disabled': ''}`} onClick={confirm}>确定</span>
+              <span className={`footer-btn reset-default ${confirmDisabled ? 'disabled': ''}`} onClick={clearFilters}>恢复默认</span>
             </div>
           </div>
         );
@@ -244,12 +232,14 @@ class App extends React.Component {
     ];
     const [sample] = data;
     const getTitle = (text) => (
-      <span className="column">
+      <div className="column">
         <span className="text">{text}</span>
-        <span className="btn" onClick={this.onClose}><CloseOutlined/></span>
-        <span className="btn" onClick={this.onLeft}><LeftOutlined/> </span>
-        <span className="btn" onClick={this.onRight}><RightOutlined/> </span>
-      </span>
+        <span className="btn-group">
+          <span className="btn" onClick={this.onClose}><CloseOutlined/></span>
+          <span className="btn" onClick={this.onLeft}><LeftOutlined/> </span>
+          <span className="btn" onClick={this.onRight}><RightOutlined/> </span>
+        </span>
+      </div>
     )
     const columns = [
       {
@@ -339,10 +329,12 @@ class App extends React.Component {
 
 
     return (
-      <div className="App" style={{ paddingTop: 300 }}>
-      <Button disabled onClick={this.handleClick}>下一步</Button>
-        <Table columns={columns} dataSource={data} scroll={{ x: 1300 }} onChange={this.onChange}
-        />
+      <div className="App">
+      <Row>
+        <Col offset={2} span={20}>
+        <Table columns={columns} dataSource={data} scroll={{ x: 1300 }} onChange={this.onChange}/>
+        </Col>
+      </Row>
       </div>
     );
   }
