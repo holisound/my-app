@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { Layout, Row, Col, Table, ConfigProvider, DatePicker, message, Select, Button, Tooltip, Slider, Divider, InputNumber, Checkbox } from 'antd';
+import { Layout, Row, Col, Table, ConfigProvider, DatePicker, Card, Spin,
+  message, Select, Button, Tooltip, Slider, Divider, InputNumber, Checkbox } from 'antd';
 // 由于 antd 组件的默认文案是英文，所以需要修改为中文
 import { CheckOutlined, CloseOutlined, RightOutlined, LeftOutlined, SearchOutlined } from '@ant-design/icons';
 import zhCN from 'antd/es/locale/zh_CN';
@@ -23,12 +24,17 @@ const count = 3;
 const fakeDataUrl = `https://randomuser.me/api/?results=${count}&inc=name,gender,email,nat&noinfo`;
 
 class App extends React.Component {
-  state = {
-    initLoading: true,
-    loading: false,
-    data: [],
-    list: [],
-  };
+  constructor(props) {
+    super(props)
+    this.state = {
+      initLoading: true,
+      loading: false,
+      data: [],
+      list: [],
+      show: false,
+    };
+    this.tooltips = [];
+  }
 
   componentDidMount() {
     this.getData(res => {
@@ -74,51 +80,41 @@ class App extends React.Component {
       );
     });
   };
-
+  handleClick = (e) => {
+    console.log(e.target)
+  }
   render() {
     const { initLoading, loading, list } = this.state;
-    const loadMore =
-      !initLoading && !loading ? (
-        <div
-          style={{
-            textAlign: 'center',
-            marginTop: 12,
-            height: 32,
-            lineHeight: '32px',
-          }}
-        >
-          <Button onClick={this.onLoadMore}>loading more</Button>
-        </div>
-      ) : null;
 
+    const items = [...(new Array(2))].map(i => <div key={i} className="flex-item"></div>);
+    const num = items.length;
+    const width = (num > 0 ? 100 : 0) + Math.max(0, 96 * (num-1));
+    const waitms = 300;
     return (
-      <Row>
-      <Col span={8} offset={2}>
-      <List
-        className="demo-loadmore-list"
-        loading={initLoading}
-        itemLayout="horizontal"
-        loadMore={loadMore}
-        dataSource={list}
-        renderItem={item => (
-          <List.Item
-            actions={[<a key="list-loadmore-edit">edit</a>, <a key="list-loadmore-more">more</a>]}
-          >
-            <Skeleton avatar title={false} loading={item.loading} active>
-              <List.Item.Meta
-                avatar={
-                  <Avatar src="https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png" />
-                }
-                title={<a href="https://ant.design">{item.name.last}</a>}
-                description="Ant Design, a design language for background applications, is refined by Ant UED Team"
-              />
-              <div>content</div>
-            </Skeleton>
-          </List.Item>
-        )}
-      />
-      </Col>
-      </Row>
+      <div style={{ margin: '0 auto', width: 400}}>
+      <Button 
+       onMouseLeave={() => {
+        this.timeout = setTimeout(() => {
+          this.setState({ show: false })
+        }, waitms)
+      }}
+       onMouseEnter={() => {
+        this.timeout && clearTimeout(this.timeout);
+        this.setState({ show: true })
+      }}>loading more</Button>
+      <div 
+       onMouseLeave={() => {
+        this.timeout = setTimeout(() => {
+          this.setState({ show: false })
+        }, waitms)
+      }}
+      onMouseEnter={() => {this.timeout && clearTimeout(this.timeout)}}
+      className={`show-me ${this.state.show ? 'show' : ''}`}></div>
+
+      <div className="flex-container" style={{ width }}>
+        {items}
+      </div>
+      </div>
     );
   }
 }
