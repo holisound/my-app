@@ -1,22 +1,9 @@
-import React, {useState} from 'react';
-import ReactDOM from 'react-dom';
-import { Layout, Row, Col, Table, ConfigProvider, DatePicker, Card, Spin, Tree,
-  message, Select, Button, Tooltip, Slider, Divider, InputNumber, Checkbox } from 'antd';
+import React, {useState,} from 'react';
+import { Tree, Button, } from 'antd';
 // 由于 antd 组件的默认文案是英文，所以需要修改为中文
-import { CheckOutlined, CloseOutlined, RightOutlined, LeftOutlined, SearchOutlined } from '@ant-design/icons';
-import zhCN from 'antd/es/locale/zh_CN';
-import moment from 'moment';
 import 'moment/locale/zh-cn';
 import 'antd/dist/antd.css';
 import './App.scss';
-import isBoolean from 'lodash/isBoolean';
-import isEqual from 'lodash/isEqual';
-import isEmpty from 'lodash/isEmpty';
-import countBy from 'lodash/countBy';
-import every from 'lodash/every';
-
-
-import { List, Avatar, Skeleton } from 'antd';
 
 import reqwest from 'reqwest';
 
@@ -119,6 +106,7 @@ const Tree2 = () => {
   return (
     <Tree
         checkable
+        motion={null}
         onExpand={onExpand}
         expandedKeys={expandedKeys}
         autoExpandParent={autoExpandParent}
@@ -192,13 +180,11 @@ class App extends React.Component {
     console.log(e.target)
   }
   render() {
-    const { initLoading, loading, list } = this.state;
 
     const items = [...(new Array(2))].map(i => <div key={i} className="flex-item"></div>);
     const num = items.length;
     const width = (num > 0 ? 100 : 0) + Math.max(0, 96 * (num-1));
     const waitms = 300;
-    const { TreeNode } = Tree;
 
 
     return (
